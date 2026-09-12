@@ -1,0 +1,6 @@
+{
+  "name": "Shopify Revenue Assurance Auditor",
+  "description": "Senior Shopify Architect auditor analyzing Admin GraphQL responses for shipping tier gaps, discount stacking margin risks, and pixel collisions with structured JSON reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
