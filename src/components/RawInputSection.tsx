@@ -145,13 +145,13 @@ export const RawInputSection: React.FC<RawInputSectionProps> = ({
       </div>
 
       {/* Benchmark Case Selectors */}
-      <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="px-5 py-4 sm:py-4.5 border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[64px]">
         <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium shrink-0">
           <Layers className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
           <span>Load Production Case:</span>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-3 w-full sm:w-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
           {BENCHMARK_CASES.map((bCase) => {
             const isSelected = selectedBenchmarkId === bCase.id;
             return (
