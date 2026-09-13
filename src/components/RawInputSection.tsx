@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload,
   Play,
@@ -23,18 +23,22 @@ interface RawInputSectionProps {
   isAudited: boolean;
 }
 
-export const RawInputSection: React.FC<RawInputSectionProps> = ({
+export function RawInputSection({
   rawJson,
   onChangeJson,
   onRunAudit,
   onLoadBenchmark,
   selectedBenchmarkId,
   isAudited,
-}) => {
+}: RawInputSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isAudited);
   const [dragOver, setDragOver] = useState<boolean>(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setIsCollapsed(isAudited);
+  }, [isAudited]);
 
   // Validate JSON on change
   const handleTextChange = (text: string) => {
@@ -250,8 +254,15 @@ export const RawInputSection: React.FC<RawInputSectionProps> = ({
               rows={12}
               value={rawJson}
               onChange={(e) => handleTextChange(e.target.value)}
-              placeholder="Paste raw Shopify Admin GraphQL response data here (e.g. { data: { deliveryProfiles: [...], discountNodes: [...], webPixels: [...] } })..."
-              className="w-full p-4 font-mono text-xs leading-relaxed text-zinc-200 focus:outline-none resize-y bg-transparent"
+              placeholder={`// Raw Shopify Admin GraphQL Ingestion
+// Instructions:
+// 1. Run the master audit query in your Shopify GraphiQL app (API version 2024-10 or newer).
+// 2. Copy the full raw JSON response and paste it here, or upload a .json file.
+// 3. Or choose any "Load Production Case" above to test pre-configured scenarios.
+// 4. Click "Run Audit Engine" to evaluate revenue leakages, stacking vulnerabilities, and tracking scripts.
+
+// Expected format: { "data": { "shop": { ... }, "deliveryProfiles": { ... } } }`}
+              className="w-full p-4 font-mono text-xs leading-relaxed text-zinc-200 focus:outline-none resize-y bg-transparent placeholder:text-zinc-500 dark:placeholder:text-zinc-500"
               spellCheck={false}
             />
 
@@ -261,6 +272,41 @@ export const RawInputSection: React.FC<RawInputSectionProps> = ({
               </div>
             )}
           </div>
+
+          {/* Quick Instructions Cards when editor is blank */}
+          {!rawJson.trim() && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
+              <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 space-y-1">
+                <div className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-bold flex items-center justify-center">1</span>
+                  <span>Get Audit Query</span>
+                </div>
+                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Click <strong>Admin GraphQL Query</strong> in the top header to copy the master audit query for Shopify GraphiQL (v2024-10+).
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 space-y-1">
+                <div className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-bold flex items-center justify-center">2</span>
+                  <span>Paste or Upload JSON</span>
+                </div>
+                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Paste raw GraphQL output directly into this editor or upload your exported <code>.json</code> file.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 space-y-1">
+                <div className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-[10px] font-bold flex items-center justify-center">3</span>
+                  <span>Or Test Production Cases</span>
+                </div>
+                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                  Select any pre-configured benchmark case above (e.g. Omnichannel Leakage or Flash Sale) to run instantly.
+                </p>
+              </div>
+            </div>
+          )}
 
           {parseError && (
             <div className="text-xs text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-lg p-2.5 font-mono">

@@ -14,7 +14,7 @@ interface MarginSimulatorProps {
   exposure: WorstCaseMarginExposure;
 }
 
-export const MarginSimulator: React.FC<MarginSimulatorProps> = ({ exposure }) => {
+export function MarginSimulator({ exposure }: MarginSimulatorProps) {
   const [testBasket, setTestBasket] = useState<number>(100);
 
   // Approximate simulation for dynamic slider value based on exposure patterns

@@ -22,14 +22,14 @@ interface HeaderProps {
   onSetTheme: (theme: ThemeMode) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export function Header({
   report,
   onOpenQueryModal,
   onDownloadReport,
   onReset,
   theme,
   onSetTheme,
-}) => {
+}: HeaderProps) {
   const isCritical = report?.audit_metadata.overall_health_status === 'CRITICAL_RISK';
   const isHigh = report?.audit_metadata.overall_health_status === 'HIGH_RISK';
   const isHealthy = report?.audit_metadata.overall_health_status === 'HEALTHY';

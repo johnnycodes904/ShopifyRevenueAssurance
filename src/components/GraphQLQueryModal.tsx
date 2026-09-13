@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 import { X, Copy, Check, Terminal, ExternalLink } from 'lucide-react';
 import { SHOPIFY_ADMIN_GRAPHQL_QUERY } from '../data/graphqlQueries';
+import { copyToClipboard } from '../utils/browser';
 
 interface GraphQLQueryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const GraphQLQueryModal: React.FC<GraphQLQueryModalProps> = ({
+export function GraphQLQueryModal({
   isOpen,
   onClose,
-}) => {
+}: GraphQLQueryModalProps) {
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(SHOPIFY_ADMIN_GRAPHQL_QUERY);
+  const handleCopy = async () => {
+    await copyToClipboard(SHOPIFY_ADMIN_GRAPHQL_QUERY);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

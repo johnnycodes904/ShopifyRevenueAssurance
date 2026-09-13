@@ -16,11 +16,11 @@ interface ExecutiveSummaryProps {
   onSelectSeverityFilter: (severity: string) => void;
 }
 
-export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
+export function ExecutiveSummary({
   report,
   onSelectDomainFilter,
   onSelectSeverityFilter,
-}) => {
+}: ExecutiveSummaryProps) {
   const { audit_metadata, worst_case_margin_exposure, inspected_nodes_summary } = report;
   const { severity_breakdown, domain_breakdown, risk_score, overall_health_status } =
     audit_metadata;

@@ -16,6 +16,7 @@ import {
   Code2,
 } from 'lucide-react';
 import { AuditFinding, AuditDomain, SeverityLevel } from '../types';
+import { copyToClipboard } from '../utils/browser';
 
 interface FindingsListProps {
   findings: AuditFinding[];
@@ -25,13 +26,13 @@ interface FindingsListProps {
   onSetSeverity: (severity: string) => void;
 }
 
-export const FindingsList: React.FC<FindingsListProps> = ({
+export function FindingsList({
   findings,
   activeDomain,
   activeSeverity,
   onSetDomain,
   onSetSeverity,
-}) => {
+}: FindingsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFindings, setExpandedFindings] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -40,8 +41,8 @@ export const FindingsList: React.FC<FindingsListProps> = ({
     setExpandedFindings((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text: string, id: string) => {
+    await copyToClipboard(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };

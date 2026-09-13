@@ -1,35 +1,29 @@
 import React, { useState } from 'react';
 import { Copy, Check, Download, Search, FileJson } from 'lucide-react';
 import { AuditReport } from '../types';
+import { copyToClipboard, downloadJsonFile } from '../utils/browser';
 
 interface JsonReportViewProps {
   report: AuditReport;
 }
 
-export const JsonReportView: React.FC<JsonReportViewProps> = ({ report }) => {
+export function JsonReportView({ report }: JsonReportViewProps) {
   const [copied, setCopied] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const jsonString = JSON.stringify(report, null, 2);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(jsonString);
+  const handleCopy = async () => {
+    await copyToClipboard(jsonString);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownload = () => {
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `shopify-revenue-audit-${report.audit_metadata.store_domain || 'store'}-${new Date()
+    const filename = `shopify-revenue-audit-${report.audit_metadata.store_domain || 'store'}-${new Date()
       .toISOString()
       .slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadJsonFile(jsonString, filename);
   };
 
   // Simple highlight or filter display

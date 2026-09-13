@@ -14,8 +14,8 @@ export interface AffectedNode {
   type: string;
   name?: string;
   field_path?: string;
-  details?: Record<string, any>;
-  raw_snippet?: any;
+  details?: Record<string, unknown> | unknown[];
+  raw_snippet?: unknown;
 }
 
 export interface AuditFinding {
@@ -124,6 +124,8 @@ export interface ShopifyShippingZone {
   }>;
   priceBasedRates?: ShopifyRateItem[];
   weightBasedRates?: ShopifyRateItem[];
+  deliveryMethodDefinitions?: ShopifyRateItem[];
+  methodDefinitions?: ShopifyRateItem[];
   rates?: ShopifyRateItem[];
 }
 
@@ -237,7 +239,7 @@ export interface ShopifyDiscountCustomerGets {
     discountAmount?: ShopifyMoneyV2;
     amount?: ShopifyMoneyV2;
   };
-  items?: any;
+  items?: unknown;
 }
 
 export interface ShopifyDiscountMinimumRequirement {
@@ -260,7 +262,7 @@ export interface ShopifyDiscountNode {
     appliesOncePerCustomer?: boolean;
     combinesWith?: ShopifyDiscountCombinesWith;
     customerGets?: ShopifyDiscountCustomerGets;
-    customerBuys?: any;
+    customerBuys?: unknown;
     minimumRequirement?: ShopifyDiscountMinimumRequirement | null;
     startsAt?: string;
     endsAt?: string | null;
@@ -269,7 +271,7 @@ export interface ShopifyDiscountNode {
 
 export interface ShopifyWebPixel {
   id: string;
-  settings?: string | Record<string, any>;
+  settings?: string | Record<string, unknown>;
   status?: 'ACTIVE' | 'INACTIVE' | string;
   accountID?: string;
   pixelId?: string;
@@ -350,5 +352,5 @@ export interface ShopifyRawPayload {
     edges?: Array<{ node: ShopifyScriptTag }>;
   } | ShopifyScriptTag[];
   themeInlineScripts?: ShopifyThemeInlineScript[];
-  [key: string]: any;
+  [key: string]: unknown;
 }

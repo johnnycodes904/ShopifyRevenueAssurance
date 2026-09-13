@@ -247,12 +247,81 @@ query StoreRevenueAssuranceAudit {
               }
             }
           }
+          ... on DiscountCodeBxgy {
+            title
+            status
+            asyncUsageCount
+            usageLimit
+            appliesOncePerCustomer
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+            customerGets {
+              value {
+                ... on DiscountPercentage {
+                  percentage
+                }
+                ... on DiscountAmount {
+                  amount {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+          ... on DiscountAutomaticBxgy {
+            title
+            status
+            asyncUsageCount
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+            customerGets {
+              value {
+                ... on DiscountPercentage {
+                  percentage
+                }
+                ... on DiscountAmount {
+                  amount {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+          ... on DiscountCodeApp {
+            title
+            status
+            asyncUsageCount
+            appliesOncePerCustomer
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+          }
+          ... on DiscountAutomaticApp {
+            title
+            status
+            asyncUsageCount
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+          }
         }
       }
     }
   }
 
-  # 5. Tracking & Script Bloat
+  # 5. Tracking & Script Bloat (Audits Web Pixels and flags deprecated scriptTags)
   webPixels(first: 20) {
     edges {
       node {
@@ -263,6 +332,7 @@ query StoreRevenueAssuranceAudit {
     }
   }
 
+  # Deprecated in modern Shopify (turned off in favor of Web Pixels / Checkout UI Extensions)
   scriptTags(first: 30) {
     edges {
       node {

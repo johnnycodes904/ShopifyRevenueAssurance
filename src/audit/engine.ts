@@ -18,14 +18,22 @@ import { calculateWorstCaseMarginExposure } from './marginCalculator';
  * Normalizes input JSON to handle both raw GraphQL response wrappers
  * (e.g. { data: { ... } }, { edges: [...] }) and direct arrays.
  */
-function extractList<T>(raw: any): T[] {
+function extractList<T>(raw: unknown): T[] {
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (raw.edges && Array.isArray(raw.edges)) {
-    return raw.edges.map((e: any) => (e.node ? e.node : e));
-  }
-  if (raw.nodes && Array.isArray(raw.nodes)) {
-    return raw.nodes;
+  if (Array.isArray(raw)) return raw as T[];
+  if (typeof raw === 'object' && raw !== null) {
+    const record = raw as Record<string, unknown>;
+    if (Array.isArray(record.edges)) {
+      return record.edges.map((e: unknown) => {
+        if (typeof e === 'object' && e !== null && 'node' in e) {
+          return (e as { node: T }).node;
+        }
+        return e as T;
+      });
+    }
+    if (Array.isArray(record.nodes)) {
+      return record.nodes as T[];
+    }
   }
   return [];
 }
@@ -100,7 +108,7 @@ export function runShopifyRevenueAudit(input: ShopifyRawPayload): AuditReport {
     // Collect locations in this profile
     const locGroups = profile.profileLocationGroups || profile.locationGroups || [];
     for (const lg of locGroups) {
-      const locList = extractList<any>(lg.locations);
+      const locList = extractList<{ id?: string; name?: string }>(lg.locations);
       for (const loc of locList) {
         if (loc.id) activeFulfillmentLocationIds.add(loc.id);
       }
@@ -112,6 +120,8 @@ export function runShopifyRevenueAudit(input: ShopifyRawPayload): AuditReport {
         ...(zone.rates || []),
         ...(zone.priceBasedRates || []),
         ...(zone.weightBasedRates || []),
+        ...(zone.deliveryMethodDefinitions || []),
+        ...(zone.methodDefinitions || []),
       ];
 
       if (rates.length > 0) {
@@ -567,7 +577,7 @@ export function runShopifyRevenueAudit(input: ShopifyRawPayload): AuditReport {
         {
           type: 'DiscountStackingMatrix',
           name: 'Margin Simulation Engine',
-          details: marginExposure.worst_case_scenarios,
+          details: { scenarios: marginExposure.worst_case_scenarios },
         },
       ],
       financial_impact: `Margin destruction across promotional campaigns. Blended contribution margin turns negative after accounting for cost of goods sold (COGS), payment processing fees (2.9%), and carrier shipping costs.`,

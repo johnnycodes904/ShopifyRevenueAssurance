@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
 import { Copy, Check, Terminal, ExternalLink, ShieldCheck, Wrench } from 'lucide-react';
 import { AuditFinding } from '../types';
+import { copyToClipboard } from '../utils/browser';
 
 interface RemediationPlaybookProps {
   findings: AuditFinding[];
 }
 
-export const RemediationPlaybook: React.FC<RemediationPlaybookProps> = ({ findings }) => {
+export function RemediationPlaybook({ findings }: RemediationPlaybookProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const actionableFindings = findings.filter(
     (f) => f.graphql_mutation_snippet || f.remediation_steps.length > 0
   );
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text: string, id: string) => {
+    await copyToClipboard(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleCopyAllMutations = () => {
+  const handleCopyAllMutations = async () => {
     const allMutations = actionableFindings
       .filter((f) => f.graphql_mutation_snippet)
       .map((f) => `# --- Fix for ${f.id}: ${f.title} ---\n${f.graphql_mutation_snippet}`)
       .join('\n\n');
 
-    navigator.clipboard.writeText(allMutations);
+    await copyToClipboard(allMutations);
     setCopiedId('all-mutations');
     setTimeout(() => setCopiedId(null), 2000);
   };

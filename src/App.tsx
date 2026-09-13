@@ -23,6 +23,7 @@ import { MarginSimulator } from './components/MarginSimulator';
 import { JsonReportView } from './components/JsonReportView';
 import { RemediationPlaybook } from './components/RemediationPlaybook';
 import { GraphQLQueryModal } from './components/GraphQLQueryModal';
+import { downloadJsonFile } from './utils/browser';
 import { runShopifyRevenueAudit } from './audit/engine';
 import { BENCHMARK_CASES } from './data/benchmarkPayloads';
 import { AuditReport, ShopifyRawPayload } from './types';
@@ -30,12 +31,8 @@ import { useTheme } from './hooks/useTheme';
 
 export default function App() {
   const { theme, setTheme } = useTheme();
-  const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string>(
-    BENCHMARK_CASES[0].id
-  );
-  const [rawJson, setRawJson] = useState<string>(() =>
-    JSON.stringify(BENCHMARK_CASES[0].payload, null, 2)
-  );
+  const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string>('');
+  const [rawJson, setRawJson] = useState<string>('');
   const [report, setReport] = useState<AuditReport | null>(null);
   const [activeTab, setActiveTab] = useState<
     'findings' | 'json_report' | 'margin_sim' | 'playbook'
@@ -45,19 +42,15 @@ export default function App() {
   const [isQueryModalOpen, setIsQueryModalOpen] = useState<boolean>(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
 
-  // Initial audit execution
-  useEffect(() => {
-    executeAudit(BENCHMARK_CASES[0].payload);
-  }, []);
-
   const executeAudit = (payload: ShopifyRawPayload) => {
     try {
       const generatedReport = runShopifyRevenueAudit(payload);
       setReport(generatedReport);
       setErrorNotice(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Audit execution error:', err);
-      setErrorNotice(err.message || 'Failed to analyze payload');
+      const message = err instanceof Error ? err.message : 'Failed to analyze payload';
+      setErrorNotice(message);
     }
   };
 
@@ -65,8 +58,9 @@ export default function App() {
     try {
       const parsed = JSON.parse(rawJson);
       executeAudit(parsed);
-    } catch (err: any) {
-      setErrorNotice('Invalid JSON input: ' + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown parsing error';
+      setErrorNotice('Invalid JSON input: ' + message);
     }
   };
 
@@ -89,22 +83,17 @@ export default function App() {
 
   const handleDownloadReport = () => {
     if (!report) return;
-    const jsonString = JSON.stringify(report, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `shopify-revenue-assurance-audit-${
+    const filename = `shopify-revenue-assurance-audit-${
       report.audit_metadata.store_domain || 'store'
     }.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadJsonFile(report, filename);
   };
 
   const handleReset = () => {
-    handleLoadBenchmark(BENCHMARK_CASES[0].payload);
+    setRawJson('');
+    setSelectedBenchmarkId('');
+    setReport(null);
+    setErrorNotice(null);
   };
 
   return (
@@ -142,6 +131,39 @@ export default function App() {
           selectedBenchmarkId={selectedBenchmarkId}
           isAudited={!!report}
         />
+
+        {/* Onboarding Instructions when no audit report has been generated */}
+        {!report && (
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xs transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center mx-auto">
+              <Terminal className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+            </div>
+            <div className="max-w-md mx-auto space-y-1.5">
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                Ready for GraphQL Ingestion
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                Paste raw JSON from your Shopify Admin API into the editor above, or select any production benchmark case to run the audit engine.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-1 flex-wrap">
+              <button
+                onClick={() => setIsQueryModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>View GraphQL Audit Query</span>
+              </button>
+              <button
+                onClick={() => handleLoadBenchmark(BENCHMARK_CASES[0].payload)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors cursor-pointer shadow-xs"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Load Sample Case ({BENCHMARK_CASES[0].name})</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Audit Results Dashboard */}
         {report && (
