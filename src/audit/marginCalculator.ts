@@ -4,9 +4,7 @@ import {
   WorstCaseScenario,
 } from '../types';
 
-/**
- * Calculates worst-case combined margin exposure if auto-discounts and coupon codes can stack.
- */
+  // Calculates worst-case combined margin exposure if auto-discounts and coupon codes can stack.
 export function calculateWorstCaseMarginExposure(
   discounts: ShopifyDiscountNode[]
 ): WorstCaseMarginExposure {
