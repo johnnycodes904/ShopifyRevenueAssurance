@@ -354,3 +354,57 @@ export interface ShopifyRawPayload {
   themeInlineScripts?: ShopifyThemeInlineScript[];
   [key: string]: unknown;
 }
+
+export type RemediationStatus = 'UNRESOLVED' | 'IN_PROGRESS' | 'RESOLVED';
+
+export interface RemediationChange {
+  findingId: string;
+  findingTitle: string;
+  severity: SeverityLevel;
+  domain: AuditDomain;
+  status: RemediationStatus;
+  note?: string;
+  updatedAt: string;
+}
+
+export interface AuditComparisonDiff {
+  previousTimestamp?: string;
+  previousRiskScore?: number;
+  currentRiskScore: number;
+  riskScoreDelta: number;
+  resolvedFindingIds: string[];
+  newFindingIds: string[];
+  previousZeroDollarVulnerable?: boolean;
+  currentZeroDollarVulnerable: boolean;
+}
+
+export interface IdentifiedIssueSummaryItem {
+  id: string;
+  title: string;
+  severity: SeverityLevel;
+  domain: AuditDomain;
+  financialImpact: string;
+  description: string;
+  remediationStep?: string;
+}
+
+export interface RecapPayload {
+  recipientEmail: string;
+  storeName?: string;
+  storeDomain?: string;
+  auditTimestamp: string;
+  riskScore: number;
+  overallHealthStatus?: string;
+  severityBreakdown?: {
+    CRITICAL: number;
+    HIGH: number;
+    MEDIUM: number;
+    LOW: number;
+  };
+  totalIssuesCount: number;
+  zeroDollarCartVulnerable?: boolean;
+  maxStackableDiscountPct?: number;
+  issues: IdentifiedIssueSummaryItem[];
+  summaryNotes?: string;
+  source: 'manual_input' | 'user_account';
+}

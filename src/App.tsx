@@ -14,6 +14,8 @@ import {
   Layers,
   Sparkles,
   Terminal,
+  MessageSquarePlus,
+  Mail,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { RawInputSection } from './components/RawInputSection';
@@ -23,10 +25,18 @@ import { MarginSimulator } from './components/MarginSimulator';
 import { JsonReportView } from './components/JsonReportView';
 import { RemediationPlaybook } from './components/RemediationPlaybook';
 import { GraphQLQueryModal } from './components/GraphQLQueryModal';
+import { FeedbackModal } from './components/FeedbackModal';
+import { EmailRecapModal } from './components/EmailRecapModal';
 import { downloadJsonFile } from './utils/browser';
 import { runShopifyRevenueAudit } from './audit/engine';
 import { BENCHMARK_CASES } from './data/benchmarkPayloads';
-import { AuditReport, ShopifyRawPayload } from './types';
+import {
+  AuditReport,
+  ShopifyRawPayload,
+  RemediationStatus,
+  RemediationChange,
+  AuditComparisonDiff,
+} from './types';
 import { useTheme } from './hooks/useTheme';
 
 export default function App() {
@@ -34,23 +44,96 @@ export default function App() {
   const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string>('');
   const [rawJson, setRawJson] = useState<string>('');
   const [report, setReport] = useState<AuditReport | null>(null);
+  const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
+  const [comparisonDiff, setComparisonDiff] = useState<AuditComparisonDiff | null>(null);
+  const [remediationStatuses, setRemediationStatuses] = useState<Record<string, RemediationStatus>>({});
+  const [remediationNotes, setRemediationNotes] = useState<Record<string, string>>({});
+  const [remediationChanges, setRemediationChanges] = useState<RemediationChange[]>([]);
   const [activeTab, setActiveTab] = useState<
     'findings' | 'json_report' | 'margin_sim' | 'playbook'
   >('findings');
   const [activeDomainFilter, setActiveDomainFilter] = useState<string>('ALL');
   const [activeSeverityFilter, setActiveSeverityFilter] = useState<string>('ALL');
   const [isQueryModalOpen, setIsQueryModalOpen] = useState<boolean>(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState<boolean>(false);
+  const [isEmailRecapModalOpen, setIsEmailRecapModalOpen] = useState<boolean>(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
 
   const executeAudit = (payload: ShopifyRawPayload) => {
     try {
       const generatedReport = runShopifyRevenueAudit(payload);
+
+      // Track comparison diff if a previous report was active
+      if (report) {
+        const prevFindingsSet = new Set(report.findings.map((f) => f.id));
+        const newFindingsSet = new Set(generatedReport.findings.map((f) => f.id));
+
+        const resolvedIds = report.findings
+          .filter((f) => !newFindingsSet.has(f.id))
+          .map((f) => f.id);
+        const newIds = generatedReport.findings
+          .filter((f) => !prevFindingsSet.has(f.id))
+          .map((f) => f.id);
+
+        const diff: AuditComparisonDiff = {
+          previousTimestamp: report.audit_metadata.audit_timestamp,
+          previousRiskScore: report.audit_metadata.risk_score,
+          currentRiskScore: generatedReport.audit_metadata.risk_score,
+          riskScoreDelta:
+            generatedReport.audit_metadata.risk_score - report.audit_metadata.risk_score,
+          resolvedFindingIds: resolvedIds,
+          newFindingIds: newIds,
+          previousZeroDollarVulnerable:
+            report.worst_case_margin_exposure.zero_dollar_cart_vulnerable,
+          currentZeroDollarVulnerable:
+            generatedReport.worst_case_margin_exposure.zero_dollar_cart_vulnerable,
+        };
+
+        setComparisonDiff(diff);
+        setPreviousReport(report);
+      }
+
       setReport(generatedReport);
       setErrorNotice(null);
     } catch (err: unknown) {
       console.error('Audit execution error:', err);
       const message = err instanceof Error ? err.message : 'Failed to analyze payload';
       setErrorNotice(message);
+    }
+  };
+
+  const handleUpdateRemediationStatus = (
+    findingId: string,
+    status: RemediationStatus,
+    note?: string
+  ) => {
+    setRemediationStatuses((prev) => ({ ...prev, [findingId]: status }));
+    if (note) {
+      setRemediationNotes((prev) => ({ ...prev, [findingId]: note }));
+    }
+
+    const finding = report?.findings.find((f) => f.id === findingId);
+    if (finding) {
+      setRemediationChanges((prev) => {
+        const existingIdx = prev.findIndex((c) => c.findingId === findingId);
+        const newEntry: RemediationChange = {
+          findingId,
+          findingTitle: finding.title,
+          severity: finding.severity,
+          domain: finding.domain,
+          status,
+          note: note || remediationNotes[findingId] || finding.remediation_steps[0],
+          updatedAt: new Date().toISOString(),
+        };
+
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated[existingIdx] = newEntry;
+          return updated;
+        } else {
+          return [newEntry, ...prev];
+        }
+      });
     }
   };
 
@@ -93,8 +176,15 @@ export default function App() {
     setRawJson('');
     setSelectedBenchmarkId('');
     setReport(null);
+    setPreviousReport(null);
+    setComparisonDiff(null);
+    setRemediationStatuses({});
+    setRemediationNotes({});
+    setRemediationChanges([]);
     setErrorNotice(null);
   };
+
+  const resolvedCount = remediationChanges.filter((c) => c.status === 'RESOLVED').length;
 
   return (
     <div className="min-h-screen bg-zinc-100/60 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col font-sans antialiased transition-colors">
@@ -102,10 +192,13 @@ export default function App() {
       <Header
         report={report}
         onOpenQueryModal={() => setIsQueryModalOpen(true)}
+        onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
+        onOpenEmailRecap={() => setIsEmailRecapModalOpen(true)}
         onDownloadReport={handleDownloadReport}
         onReset={handleReset}
         theme={theme}
         onSetTheme={setTheme}
+        resolvedChangesCount={resolvedCount}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -180,6 +273,7 @@ export default function App() {
                 setActiveSeverityFilter(sev);
                 setActiveTab('findings');
               }}
+              onOpenEmailRecap={() => setIsEmailRecapModalOpen(true)}
             />
 
             {/* Navigation Tabs */}
@@ -248,6 +342,11 @@ export default function App() {
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                   {report.findings.filter((f) => f.graphql_mutation_snippet).length}
                 </span>
+                {resolvedCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    {resolvedCount} resolved
+                  </span>
+                )}
               </button>
             </div>
 
@@ -272,7 +371,13 @@ export default function App() {
               )}
 
               {activeTab === 'playbook' && (
-                <RemediationPlaybook findings={report.findings} />
+                <RemediationPlaybook
+                  findings={report.findings}
+                  remediationStatuses={remediationStatuses}
+                  remediationNotes={remediationNotes}
+                  onUpdateStatus={handleUpdateRemediationStatus}
+                  onOpenEmailRecap={() => setIsEmailRecapModalOpen(true)}
+                />
               )}
             </div>
           </div>
@@ -281,14 +386,40 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4 px-4 text-center text-xs text-zinc-500 dark:text-zinc-400 transition-colors">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>
-            Shopify Revenue Assurance & Architecture Audit Engine • Compliant with Shopify Admin API
-            2024-10
-          </span>
-          <span className="font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
-            Strict Input Validation • No Synthetic Configurations
-          </span>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <span>
+              Shopify Revenue Assurance & Architecture Audit Engine • Compliant with Shopify Admin API 2024-10
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px]">
+            {report && (
+              <button
+                id="footer-email-recap-btn"
+                type="button"
+                onClick={() => setIsEmailRecapModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-zinc-600 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 font-medium transition-colors cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Email Issues Summary</span>
+              </button>
+            )}
+
+            <button
+              id="footer-feedback-btn"
+              type="button"
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-zinc-600 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 font-medium transition-colors cursor-pointer"
+            >
+              <MessageSquarePlus className="w-3.5 h-3.5" />
+              <span>Feedback / Report Bug</span>
+            </button>
+            <span className="font-mono text-zinc-400 dark:text-zinc-600">•</span>
+            <span className="font-mono text-zinc-500 dark:text-zinc-400">
+              Strict Input Validation
+            </span>
+          </div>
         </div>
       </footer>
 
@@ -296,6 +427,23 @@ export default function App() {
       <GraphQLQueryModal
         isOpen={isQueryModalOpen}
         onClose={() => setIsQueryModalOpen(false)}
+      />
+
+      {/* User Feedback & Bug Reporting Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        storeDomain={report?.audit_metadata.store_domain}
+        storeName={report?.audit_metadata.store_name}
+      />
+
+      {/* Email Recap Modal (Extensible for User Accounts) */}
+      <EmailRecapModal
+        isOpen={isEmailRecapModalOpen}
+        onClose={() => setIsEmailRecapModalOpen(false)}
+        report={report}
+        changes={remediationChanges}
+        comparisonDiff={comparisonDiff}
       />
     </div>
   );

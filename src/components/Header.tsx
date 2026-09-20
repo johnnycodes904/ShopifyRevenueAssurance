@@ -9,6 +9,8 @@ import {
   Sun,
   Moon,
   Monitor,
+  MessageSquarePlus,
+  Mail,
 } from 'lucide-react';
 import { AuditReport } from '../types';
 import { ThemeMode } from '../hooks/useTheme';
@@ -16,19 +18,25 @@ import { ThemeMode } from '../hooks/useTheme';
 interface HeaderProps {
   report: AuditReport | null;
   onOpenQueryModal: () => void;
+  onOpenFeedbackModal: () => void;
+  onOpenEmailRecap?: () => void;
   onDownloadReport: () => void;
   onReset: () => void;
   theme: ThemeMode;
   onSetTheme: (theme: ThemeMode) => void;
+  resolvedChangesCount?: number;
 }
 
 export function Header({
   report,
   onOpenQueryModal,
+  onOpenFeedbackModal,
+  onOpenEmailRecap,
   onDownloadReport,
   onReset,
   theme,
   onSetTheme,
+  resolvedChangesCount = 0,
 }: HeaderProps) {
   const isCritical = report?.audit_metadata.overall_health_status === 'CRITICAL_RISK';
   const isHigh = report?.audit_metadata.overall_health_status === 'HIGH_RISK';
@@ -132,8 +140,37 @@ export function Header({
             <span>Admin GraphQL Query</span>
           </button>
 
+          <button
+            id="header-feedback-btn"
+            type="button"
+            onClick={onOpenFeedbackModal}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-700 bg-zinc-100 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors cursor-pointer"
+            title="Send feedback or report bugs"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Feedback / Bug Report</span>
+          </button>
+
           {report && (
             <>
+              {onOpenEmailRecap && (
+                <button
+                  id="header-email-recap-btn"
+                  type="button"
+                  onClick={onOpenEmailRecap}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 shadow-xs transition-colors cursor-pointer"
+                  title="Email executive summary of identified issues"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email Issues Summary</span>
+                  {report.findings.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-indigo-700 dark:bg-indigo-600 text-white">
+                      {report.findings.length}
+                    </span>
+                  )}
+                </button>
+              )}
+
               <button
                 id="header-download-report-btn"
                 onClick={onDownloadReport}

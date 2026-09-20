@@ -7,6 +7,7 @@ import {
   Percent,
   Activity,
   Flame,
+  Mail,
 } from 'lucide-react';
 import { AuditReport } from '../types';
 
@@ -14,12 +15,14 @@ interface ExecutiveSummaryProps {
   report: AuditReport;
   onSelectDomainFilter: (domain: string) => void;
   onSelectSeverityFilter: (severity: string) => void;
+  onOpenEmailRecap?: () => void;
 }
 
 export function ExecutiveSummary({
   report,
   onSelectDomainFilter,
   onSelectSeverityFilter,
+  onOpenEmailRecap,
 }: ExecutiveSummaryProps) {
   const { audit_metadata, worst_case_margin_exposure, inspected_nodes_summary } = report;
   const { severity_breakdown, domain_breakdown, risk_score, overall_health_status } =
@@ -89,28 +92,43 @@ export function ExecutiveSummary({
             </p>
           </div>
 
-          {/* Risk Score Dial */}
-          <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 rounded-xl p-4 self-start lg:self-auto shrink-0">
-            <div className="text-right">
-              <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                Store Risk Index
+          {/* Risk Score Dial & Email Recap Action */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start lg:self-auto shrink-0">
+            <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 rounded-xl p-3.5 sm:p-4">
+              <div className="text-right">
+                <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  Store Risk Index
+                </div>
+                <div className="text-xs text-zinc-600 dark:text-zinc-300">
+                  {risk_score >= 70 ? 'Immediate Action Required' : risk_score >= 35 ? 'Moderate Vulnerabilities' : 'Low Revenue Exposure'}
+                </div>
               </div>
-              <div className="text-xs text-zinc-600 dark:text-zinc-300">
-                {risk_score >= 70 ? 'Immediate Action Required' : risk_score >= 35 ? 'Moderate Vulnerabilities' : 'Low Revenue Exposure'}
+              <div
+                className={`w-14 h-14 rounded-full flex flex-col items-center justify-center font-mono font-bold text-lg border-4 ${
+                  risk_score >= 70
+                    ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                    : risk_score >= 35
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                    : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                }`}
+              >
+                <span>{risk_score}</span>
+                <span className="text-[9px] font-normal -mt-1 text-zinc-600 dark:text-zinc-400">/ 100</span>
               </div>
             </div>
-            <div
-              className={`w-14 h-14 rounded-full flex flex-col items-center justify-center font-mono font-bold text-lg border-4 ${
-                risk_score >= 70
-                  ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                  : risk_score >= 35
-                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                  : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-              }`}
-            >
-              <span>{risk_score}</span>
-              <span className="text-[9px] font-normal -mt-1 text-zinc-600 dark:text-zinc-400">/ 100</span>
-            </div>
+
+            {onOpenEmailRecap && (
+              <button
+                id="exec-summary-email-recap-btn"
+                type="button"
+                onClick={onOpenEmailRecap}
+                className="inline-flex sm:flex-col items-center justify-center gap-1.5 p-3 sm:px-4 sm:py-3.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 transition-colors cursor-pointer shadow-xs w-full sm:w-auto"
+                title="Email executive summary of identified issues"
+              >
+                <Mail className="w-4 h-4" />
+                <span className="whitespace-nowrap">Email Issues Summary</span>
+              </button>
+            )}
           </div>
         </div>
 
