@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 
 /**
@@ -353,6 +354,20 @@ async function startServer() {
       totalSent: sentRecapsArchive.length,
       recaps: sentRecapsArchive.slice(0, 20),
     });
+  });
+
+  /**
+   * GET /api/overview-pdf
+   * Serves the pre-compiled high-level executive PDF overview of the application.
+   */
+  app.get('/api/overview-pdf', (req, res) => {
+    const pdfPath = path.join(process.cwd(), 'public', 'Shopify-Revenue-Audit-Engine-Overview.pdf');
+    if (fs.existsSync(pdfPath)) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="Shopify-Revenue-Audit-Engine-Overview.pdf"');
+      return res.sendFile(pdfPath);
+    }
+    return res.status(404).json({ error: 'PDF overview file not found.' });
   });
 
   // Vite middleware setup
