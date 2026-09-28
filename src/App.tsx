@@ -16,7 +16,6 @@ import {
   Terminal,
   MessageSquarePlus,
   Mail,
-  FileText,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { RawInputSection } from './components/RawInputSection';
@@ -29,7 +28,6 @@ import { GraphQLQueryModal } from './components/GraphQLQueryModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { EmailRecapModal } from './components/EmailRecapModal';
 import { downloadJsonFile } from './utils/browser';
-import { generateApplicationOverviewPdf } from './utils/pdfExport';
 import { runShopifyRevenueAudit } from './audit/engine';
 import { BENCHMARK_CASES } from './data/benchmarkPayloads';
 import {
@@ -196,7 +194,6 @@ export default function App() {
         onOpenQueryModal={() => setIsQueryModalOpen(true)}
         onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
         onOpenEmailRecap={() => setIsEmailRecapModalOpen(true)}
-        onDownloadOverviewPdf={() => generateApplicationOverviewPdf()}
         onDownloadReport={handleDownloadReport}
         onReset={handleReset}
         theme={theme}
@@ -417,17 +414,6 @@ export default function App() {
             >
               <MessageSquarePlus className="w-3.5 h-3.5" />
               <span>Feedback / Report Bug</span>
-            </button>
-
-            <button
-              id="footer-overview-pdf-btn"
-              type="button"
-              onClick={() => generateApplicationOverviewPdf()}
-              className="inline-flex items-center gap-1.5 text-zinc-600 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 font-medium transition-colors cursor-pointer"
-              title="Download formatted application overview PDF"
-            >
-              <FileText className="w-3.5 h-3.5 text-rose-500" />
-              <span>Download Overview PDF</span>
             </button>
             <span className="font-mono text-zinc-400 dark:text-zinc-600">•</span>
             <span className="font-mono text-zinc-500 dark:text-zinc-400">

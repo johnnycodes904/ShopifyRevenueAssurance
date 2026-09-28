@@ -11,7 +11,6 @@ import {
   Monitor,
   MessageSquarePlus,
   Mail,
-  FileText,
 } from 'lucide-react';
 import { AuditReport } from '../types';
 import { ThemeMode } from '../hooks/useTheme';
@@ -21,7 +20,6 @@ interface HeaderProps {
   onOpenQueryModal: () => void;
   onOpenFeedbackModal: () => void;
   onOpenEmailRecap?: () => void;
-  onDownloadOverviewPdf?: () => void;
   onDownloadReport: () => void;
   onReset: () => void;
   theme: ThemeMode;
@@ -34,7 +32,6 @@ export function Header({
   onOpenQueryModal,
   onOpenFeedbackModal,
   onOpenEmailRecap,
-  onDownloadOverviewPdf,
   onDownloadReport,
   onReset,
   theme,
@@ -153,19 +150,6 @@ export function Header({
             <MessageSquarePlus className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>Feedback / Bug Report</span>
           </button>
-
-          {onDownloadOverviewPdf && (
-            <button
-              id="header-overview-pdf-btn"
-              type="button"
-              onClick={onDownloadOverviewPdf}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-700 bg-zinc-100 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors cursor-pointer"
-              title="Download high-level application overview as PDF"
-            >
-              <FileText className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-              <span>Overview PDF</span>
-            </button>
-          )}
 
           {report && (
             <>
