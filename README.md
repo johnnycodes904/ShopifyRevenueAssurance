@@ -29,7 +29,6 @@
    - [Deterministic Risk Scoring & Health Classification Formula](#deterministic-risk-scoring--health-classification-formula)
 5. [Benchmark Test Suite & Payloads](#benchmark-test-suite--payloads)
 6. [API Endpoints Reference](#api-endpoints-reference)
-7. [Getting Started & Local Development](#getting-started--local-development)
 
 ---
 
@@ -730,41 +729,6 @@ Submits user feedback or bug report with IP-based rate limiting (1 per 5 minutes
 ### `GET /api/feedback/status`
 Checks if the client IP is currently on anti-spam cooldown.
 - **Response**: `{ "onCooldown": false, "remainingSeconds": 0, "clientIp": "127.0.0.1" }`
-
----
-
-## 7. Getting Started & Local Development
-
-### Prerequisites
-- Node.js `18.x` or later (or Bun / PNPM)
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/your-org/shopify-revenue-assurance-auditor.git
-cd shopify-revenue-assurance-auditor
-
-# Install dependencies
-npm install
-```
-
-### Running Locally
-```bash
-# Start full-stack Express server with Vite middleware on port 3000
-npm run dev
-```
-
-Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Verification & Linting
-```bash
-# Run TypeScript compilation check
-npm run lint
-
-# Build production bundle
-npm run build
-```
 
 ---
 
