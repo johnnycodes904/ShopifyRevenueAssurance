@@ -1,7 +1,9 @@
 {
-  "name": "react-example",
+  "name": "shopify-revenue-assurance-auditor",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "author": "Jon Deming <Jon.Deming@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

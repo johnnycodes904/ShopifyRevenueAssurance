@@ -1,6 +1,6 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2026 Jon Deming. All rights reserved.
+ * Proprietary and Confidential - Unauthorized copying or distribution is strictly prohibited.
  */
 
 import React, { useState, useEffect } from 'react';

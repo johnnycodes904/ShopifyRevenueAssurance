@@ -769,4 +769,7 @@ npm run build
 ---
 
 ## License
-MIT License. Built for Shopify Architects, Developers, and Revenue Assurance Teams.
+**Proprietary and Confidential**  
+Copyright (c) 2026 Jon Deming. All rights reserved.
+
+Unauthorized copying, distribution, modification, reverse engineering, or commercial exploitation of this software and its algorithms, in whole or in part, via any medium, is strictly prohibited. For commercial licensing inquiries, contact Jon Deming (Jon.Deming@gmail.com).
